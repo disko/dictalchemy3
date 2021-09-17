@@ -9,3 +9,4 @@ build
 dist
 .ropeproject
 .idea
+.venv

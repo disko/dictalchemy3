@@ -1,30 +1,32 @@
-# vim: set fileencoding=utf-8 :
-from __future__ import absolute_import, division
+import unittest
+from sqlalchemy import Column
+from sqlalchemy import ForeignKey
+from sqlalchemy import Integer
+from sqlalchemy import String
+from sqlalchemy import Table
+from sqlalchemy import create_engine
+from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.ext.orderinglist import ordering_list
+from sqlalchemy.orm import backref
+from sqlalchemy.orm import relationship
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import synonym
+from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from dictalchemy import DictableModel
 from dictalchemy.utils import arg_to_dict
-import unittest
-
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import Table, Column, String, Integer, ForeignKey
-from sqlalchemy.orm import relationship, backref, synonym
-from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm.collections import attribute_mapped_collection
-from sqlalchemy.ext.orderinglist import ordering_list
-from sqlalchemy.ext.associationproxy import association_proxy
-
 
 # Setup sqlalchemy
-engine = create_engine('sqlite:///:memory:', echo=False)
+engine = create_engine("sqlite:///:memory:", echo=False)
 from sqlalchemy.ext.declarative import declarative_base
+
 Base = declarative_base(engine, cls=DictableModel)
 
 
 class TestCase(unittest.TestCase):
-
     def setUp(self):
-        """ Recreate the database """
+        """Recreate the database"""
         Base.metadata.create_all(engine)
         Session = sessionmaker(bind=engine)
         self.session = Session()
@@ -34,7 +36,7 @@ class TestCase(unittest.TestCase):
 
 
 class Named(Base):
-    __tablename__ = 'named'
+    __tablename__ = "named"
     id = Column(Integer, primary_key=True)
     name = Column(String)
 
@@ -43,8 +45,8 @@ class Named(Base):
 
 
 class NamedWithOtherPk(Base):
-    __tablename__ = 'namedwithotherpk'
-    id = Column('other_id', Integer, primary_key=True)
+    __tablename__ = "namedwithotherpk"
+    id = Column("other_id", Integer, primary_key=True)
     name = Column(String)
 
     def __init__(self, name):
@@ -52,17 +54,17 @@ class NamedWithOtherPk(Base):
 
 
 class NamedOtherColumnName(Base):
-    __tablename__ = 'named_with_other_column'
+    __tablename__ = "named_with_other_column"
 
     id = Column(Integer, primary_key=True)
-    name = Column('namecolumn', String)
+    name = Column("namecolumn", String)
 
     def __init__(self, name):
         self.name = name
 
 
 class NamedWithSynonym(Base):
-    __tablename__ = 'named_with_synonym'
+    __tablename__ = "named_with_synonym"
 
     id = Column(Integer, primary_key=True)
     _name = Column(String)
@@ -73,15 +75,14 @@ class NamedWithSynonym(Base):
     def _getname(self):
         return self._name
 
-    name = synonym('_name', descriptor=property(_getname, _setname))
+    name = synonym("_name", descriptor=property(_getname, _setname))
 
     def __init__(self, name):
         self.name = name
 
 
 class OneToManyChild(Base):
-
-    __tablename__ = 'onetomanychild'
+    __tablename__ = "onetomanychild"
 
     id = Column(Integer, primary_key=True)
 
@@ -92,8 +93,7 @@ class OneToManyChild(Base):
 
 
 class OneToManyParent(Base):
-
-    __tablename__ = 'onetomanyparent'
+    __tablename__ = "onetomanyparent"
 
     id = Column(Integer, primary_key=True)
 
@@ -101,27 +101,26 @@ class OneToManyParent(Base):
 
     _child_id = Column(Integer, ForeignKey(OneToManyChild.id))
 
-    child = relationship(OneToManyChild,
-                         primaryjoin=_child_id == OneToManyChild.id,
-                         backref=backref('parent'))
+    child = relationship(
+        OneToManyChild,
+        primaryjoin=_child_id == OneToManyChild.id,
+        backref=backref("parent"),
+    )
 
     def __init__(self, name):
         self.name = name
 
 
-m2m_table = Table('m2m_table',
-                  Base.metadata,
-                  Column('left_id', Integer,
-                         ForeignKey('m2mleft.id'),
-                         primary_key=True),
-                  Column('right_id', Integer,
-                         ForeignKey('m2mright.id'),
-                         primary_key=True),
-                  )
+m2m_table = Table(
+    "m2m_table",
+    Base.metadata,
+    Column("left_id", Integer, ForeignKey("m2mleft.id"), primary_key=True),
+    Column("right_id", Integer, ForeignKey("m2mright.id"), primary_key=True),
+)
 
 
 class M2mLeft(Base):
-    __tablename__ = 'm2mleft'
+    __tablename__ = "m2mleft"
 
     id = Column(Integer, primary_key=True)
 
@@ -130,13 +129,11 @@ class M2mLeft(Base):
     def __init__(self, name):
         self.name = name
 
-    rights = relationship('M2mRight',
-                          secondary=m2m_table,
-                          backref=backref('lefts'))
+    rights = relationship("M2mRight", secondary=m2m_table, backref=backref("lefts"))
 
 
 class M2mRight(Base):
-    __tablename__ = 'm2mright'
+    __tablename__ = "m2mright"
 
     id = Column(Integer, primary_key=True)
 
@@ -147,8 +144,7 @@ class M2mRight(Base):
 
 
 class MultipleChildChild1Child(Base):
-
-    __tablename__ = 'multiplechildchild1child'
+    __tablename__ = "multiplechildchild1child"
 
     id = Column(Integer, primary_key=True)
 
@@ -159,8 +155,7 @@ class MultipleChildChild1Child(Base):
 
 
 class MultipleChildChild1(Base):
-
-    __tablename__ = 'multiplechildchild1'
+    __tablename__ = "multiplechildchild1"
 
     id = Column(Integer, primary_key=True)
 
@@ -168,17 +163,18 @@ class MultipleChildChild1(Base):
 
     _child_id = Column(Integer, ForeignKey(MultipleChildChild1Child.id))
 
-    child = relationship(MultipleChildChild1Child,
-                         primaryjoin=_child_id == MultipleChildChild1Child.id,
-                         backref=backref('parent'))
+    child = relationship(
+        MultipleChildChild1Child,
+        primaryjoin=_child_id == MultipleChildChild1Child.id,
+        backref=backref("parent"),
+    )
 
     def __init__(self, name):
         self.name = name
 
 
 class MultipleChildChild2(Base):
-
-    __tablename__ = 'multiplechildchild2'
+    __tablename__ = "multiplechildchild2"
 
     id = Column(Integer, primary_key=True)
 
@@ -189,8 +185,7 @@ class MultipleChildChild2(Base):
 
 
 class MultipleChildParent(Base):
-
-    __tablename__ = 'multiplechildparent'
+    __tablename__ = "multiplechildparent"
 
     id = Column(Integer, primary_key=True)
 
@@ -200,32 +195,35 @@ class MultipleChildParent(Base):
 
     _child2_id = Column(Integer, ForeignKey(MultipleChildChild2.id))
 
-    child1 = relationship(MultipleChildChild1,
-                          primaryjoin=_child1_id == MultipleChildChild1.id,
-                          backref=backref('parent'))
+    child1 = relationship(
+        MultipleChildChild1,
+        primaryjoin=_child1_id == MultipleChildChild1.id,
+        backref=backref("parent"),
+    )
 
-    child2 = relationship(MultipleChildChild2,
-                          primaryjoin=_child2_id == MultipleChildChild2.id,
-                          backref=backref('parent'))
+    child2 = relationship(
+        MultipleChildChild2,
+        primaryjoin=_child2_id == MultipleChildChild2.id,
+        backref=backref("parent"),
+    )
 
     def __init__(self, name):
         self.name = name
 
 
 class WithHybrid(Base):
+    __tablename__ = "withhybrid"
 
-    __tablename__ = 'withhybrid'
+    id = Column("id", Integer, primary_key=True)
 
-    id = Column('id', Integer, primary_key=True)
-
-    _value = Column('value', Integer)
+    _value = Column("value", Integer)
 
     @hybrid_property
     def value(self):
         return self._value
 
     @value.setter
-    def set_value(self, value):
+    def value(self, value):
         self._value = value
 
     def __init__(self, value):
@@ -233,19 +231,18 @@ class WithHybrid(Base):
 
 
 class WithDefaultInclude(Base):
+    __tablename__ = "withdefaultinclude"
 
-    __tablename__ = 'withdefaultinclude'
+    dictalchemy_include = ["id_alias"]
 
-    dictalchemy_include = ['id_alias']
-
-    id = Column('id', Integer, primary_key=True)
+    id = Column("id", Integer, primary_key=True)
 
     @hybrid_property
     def id_alias(self):
         return self.id
 
     @id_alias.setter
-    def set_id_alias(self, value):
+    def id_alias(self, value):
         self.id = value
 
     def __init__(self, id):
@@ -253,224 +250,224 @@ class WithDefaultInclude(Base):
 
 
 class WithAttributeMappedCollectionChild(Base):
-
-    __tablename__ = 'withattributemappedcollectionchild'
+    __tablename__ = "withattributemappedcollectionchild"
 
     id = Column(Integer, primary_key=True)
 
     name = Column(String, unique=True, nullable=False)
 
-    parent_id = Column(Integer, ForeignKey('withattributemappedcollection.id'))
+    parent_id = Column(Integer, ForeignKey("withattributemappedcollection.id"))
 
     def __init__(self, name):
         self.name = name
 
 
 class WithAttributeMappedCollection(Base):
-
-    __tablename__ = 'withattributemappedcollection'
+    __tablename__ = "withattributemappedcollection"
 
     id = Column(Integer, primary_key=True)
 
-    childs = relationship(WithAttributeMappedCollectionChild,
-                          collection_class=attribute_mapped_collection('name'),
-                          cascade="all, delete-orphan",
-                          backref=backref('parents'))
+    childs = relationship(
+        WithAttributeMappedCollectionChild,
+        collection_class=attribute_mapped_collection("name"),
+        cascade="all, delete-orphan",
+        backref=backref("parents"),
+    )
 
 
 class DynamicRelationChild(Base):
-
-    __tablename__ = 'dynamicrelationchild'
+    __tablename__ = "dynamicrelationchild"
 
     id = Column(Integer, primary_key=True)
 
-    parent_id = Column(Integer, ForeignKey('dynamicrelationparent.id'),
-                       nullable=False)
+    parent_id = Column(Integer, ForeignKey("dynamicrelationparent.id"), nullable=False)
 
 
 class DynamicRelationParent(Base):
-
-    __tablename__ = 'dynamicrelationparent'
+    __tablename__ = "dynamicrelationparent"
 
     id = Column(Integer, primary_key=True)
 
     childs = relationship(
         DynamicRelationChild,
         primaryjoin="DynamicRelationChild.parent_id==DynamicRelationParent.id",
-        backref=backref('parent'),
-        lazy='dynamic')
+        backref=backref("parent"),
+        lazy="dynamic",
+    )
 
 
 class OptionalChild(Base):
-    __tablename__ = 'optionalchild'
+    __tablename__ = "optionalchild"
     id = Column(Integer, primary_key=True)
 
 
 class ParentWithOptionalChild(Base):
-    __tablename__ = 'parentwithoptionalchild'
+    __tablename__ = "parentwithoptionalchild"
     id = Column(Integer, primary_key=True)
-    child_id = Column(Integer, ForeignKey('optionalchild.id'), nullable=True)
+    child_id = Column(Integer, ForeignKey("optionalchild.id"), nullable=True)
     child = relationship(OptionalChild, uselist=False)
 
 
 class AsHalMixin(object):
-
     base_url = None
 
     def get_hal_links(self):
         if self.base_url:
-            return {'self': '{0}/{1}'.format(self.base_url, self.id)}
+            return {"self": "{0}/{1}".format(self.base_url, self.id)}
         else:
             return {}
 
     def ashal(self, **kwargs):
-        kwargs['method'] = 'ashal'
+        kwargs["method"] = "ashal"
         result = self.asdict(**kwargs)
 
-        follow = arg_to_dict(kwargs.get('follow', None))
+        follow = arg_to_dict(kwargs.get("follow", None))
         _embedded = {}
-        for (k, args) in follow.iteritems():
-            if args.get('_embedded', None) and k in result:
+        for (k, args) in follow.items():
+            if args.get("_embedded", None) and k in result:
                 _embedded[k] = result.pop(k)
 
-        result['_embedded'] = _embedded
-        result['_links'] = self.get_hal_links()
+        result["_embedded"] = _embedded
+        result["_links"] = self.get_hal_links()
 
         return result
 
 
 class WithHalChild(Base, AsHalMixin):
+    __tablename__ = "withhalchild"
 
-    __tablename__ = 'withhalchild'
-
-    base_url = '/with_hal_child'
+    base_url = "/with_hal_child"
 
     id = Column(Integer, primary_key=True)
 
 
 class WithHalParent(Base, AsHalMixin):
+    __tablename__ = "withhalparent"
 
-    __tablename__ = 'withhalparent'
-
-    base_url = '/with_hal_parent'
+    base_url = "/with_hal_parent"
 
     id = Column(Integer, primary_key=True)
-    child_id = Column(Integer, ForeignKey('withhalchild.id'), nullable=True)
+    child_id = Column(Integer, ForeignKey("withhalchild.id"), nullable=True)
     child = relationship(WithHalChild)
 
 
 class WithMethodWithExtraArgumentChild(Base):
-
-    __tablename__ = 'withmethodwithextraargumentchild'
+    __tablename__ = "withmethodwithextraargumentchild"
 
     id = Column(Integer, primary_key=True)
 
     def extra_method(self, number, **kwargs):
-        return {'number': number}
+        return {"number": number}
 
 
 class WithMethodWithExtraArgumentParent(Base):
-
-    __tablename__ = 'withmethodwithextraargumentparent'
+    __tablename__ = "withmethodwithextraargumentparent"
 
     id = Column(Integer, primary_key=True)
 
-    child_id = Column(Integer,
-                      ForeignKey('withmethodwithextraargumentchild.id'),
-                      nullable=True)
+    child_id = Column(
+        Integer, ForeignKey("withmethodwithextraargumentchild.id"), nullable=True
+    )
 
     child = relationship(WithMethodWithExtraArgumentChild)
 
 
 class OrderingChild(Base):
-
-    __tablename__ = 'orderingchild'
+    __tablename__ = "orderingchild"
 
     id = Column(Integer, primary_key=True)
 
     position = Column(Integer)
 
-    parent_id = Column(Integer, ForeignKey('orderingparent.id'))
+    parent_id = Column(Integer, ForeignKey("orderingparent.id"))
 
 
 class OrderingParent(Base):
-    __tablename__ = 'orderingparent'
+    __tablename__ = "orderingparent"
 
     id = Column(Integer, primary_key=True)
 
-    children = relationship(OrderingChild,
-                            order_by=OrderingChild.position,
-                            collection_class=ordering_list('position'))
+    children = relationship(
+        OrderingChild,
+        order_by=OrderingChild.position,
+        collection_class=ordering_list("position"),
+    )
 
 
 m2m_associationproxy_table = Table(
-    'm2maassociationlisttable',
+    "m2maassociationlisttable",
     Base.metadata,
-    Column('parent_id', Integer, ForeignKey("m2massociationlistparent.id"),
-           primary_key=True),
-    Column('child_id', Integer, ForeignKey("m2massociationlistchild.id"),
-           primary_key=True))
+    Column(
+        "parent_id",
+        Integer,
+        ForeignKey("m2massociationlistparent.id"),
+        primary_key=True,
+    ),
+    Column(
+        "child_id", Integer, ForeignKey("m2massociationlistchild.id"), primary_key=True
+    ),
+)
 
 
 class M2MAssociationListParent(Base):
-
-    __tablename__ = 'm2massociationlistparent'
+    __tablename__ = "m2massociationlistparent"
 
     id = Column(Integer, primary_key=True)
 
-    children = relationship('M2MAssociationListChild',
-                            secondary=lambda: m2m_associationproxy_table)
+    children = relationship(
+        "M2MAssociationListChild", secondary=lambda: m2m_associationproxy_table
+    )
 
-    child_list = association_proxy('children', 'id')
+    child_list = association_proxy("children", "id")
 
 
 class M2MAssociationListChild(Base):
-
-    __tablename__ = 'm2massociationlistchild'
+    __tablename__ = "m2massociationlistchild"
 
     id = Column(Integer, primary_key=True)
 
 
 class M2MAssociationDictParent(Base):
-
-    __tablename__ = 'm2massociationdictparent'
+    __tablename__ = "m2massociationdictparent"
 
     id = Column(Integer, primary_key=True)
 
     children = association_proxy(
-                'child_ids',
-                'id',
-                creator=lambda k, v: M2MAssociationDictKey(the_child_key=k,
-                                                           the_child_value=v))
+        "child_ids",
+        "id",
+        creator=lambda k, v: M2MAssociationDictKey(the_child_key=k, the_child_value=v),
+    )
 
 
 class M2MAssociationDictKey(Base):
+    __tablename__ = "m2massociationdictkey"
 
-    __tablename__ = 'm2massociationdictkey'
+    parent_id = Column(
+        Integer, ForeignKey("m2massociationdictparent.id"), primary_key=True
+    )
 
-    parent_id = Column(Integer,
-                       ForeignKey('m2massociationdictparent.id'),
-                       primary_key=True)
-
-    child_id = Column(Integer,
-                      ForeignKey('m2massociationdictchild.id'),
-                      primary_key=True)
+    child_id = Column(
+        Integer, ForeignKey("m2massociationdictchild.id"), primary_key=True
+    )
 
     the_child_key = Column(String)
 
-    user = relationship(M2MAssociationDictParent, backref=backref(
+    user = relationship(
+        M2MAssociationDictParent,
+        backref=backref(
             "children",
             collection_class=attribute_mapped_collection("the_child_key"),
-            cascade="all, delete-orphan"))
+            cascade="all, delete-orphan",
+        ),
+    )
 
     _child_value = relationship("M2MAssociationDictChild")
 
-    child_value = association_proxy('_child_value', 'the_child_value')
+    child_value = association_proxy("_child_value", "the_child_value")
 
 
 class M2MAssociationDictChild(Base):
-
-    __tablename__ = 'm2massociationdictchild'
+    __tablename__ = "m2massociationdictchild"
 
     id = Column(Integer, primary_key=True)
 

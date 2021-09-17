@@ -1,3 +1,9 @@
+* Fix issues with newer SQLAlchemy.  See https://github.com/danielholmstrom/dictalchemy/pull/8 (thanks to Simon Tegelid)
+* Fix issues with setuptools>=58.
+* Remove Python 2 comaptibility.
+* Reformat code with ``black``.
+* Fork project from  https://github.com/danielholmstrom/dictalchemy
+
 Version 0.1.2.7
 ===============
 

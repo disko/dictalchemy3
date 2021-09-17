@@ -1,4 +1,3 @@
-# vim: set fileencoding=utf-8 :
 """
 ~~~~~~~
 Classes
@@ -8,8 +7,6 @@ Contains :class:`DictableModel` that can be used as a base class for
 :meth:`sqlalchemy.ext.declarative_base`.
 
 """
-
-from __future__ import absolute_import, division
 
 from dictalchemy import utils
 

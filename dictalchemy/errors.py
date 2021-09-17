@@ -1,15 +1,14 @@
-# vim: set fileencoding=utf-8 :
 """
 ~~~~~~
 Errors
 ~~~~~~
 
 """
-from __future__ import absolute_import, division
 
 
 class DictalchemyError(Exception):
     """Base class for Dictalchemy errors"""
+
     pass
 
 

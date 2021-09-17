@@ -1,15 +1,13 @@
-# vim: set fileencoding=utf-8 :
 """
 ~~~~~~~~~
 Utilities
 ~~~~~~~~~
 """
-from __future__ import absolute_import, division
 
 import copy
+
 from sqlalchemy import inspect
 from sqlalchemy.ext.associationproxy import _AssociationList
-
 from sqlalchemy.orm.dynamic import AppenderMixin
 from sqlalchemy.orm.query import Query
 
@@ -41,8 +39,17 @@ def arg_to_dict(arg):
     return arg
 
 
-def asdict(model, exclude=None, exclude_underscore=None, exclude_pk=None,
-           follow=None, include=None, only=None, method='asdict', **kwargs):
+def asdict(
+    model,
+    exclude=None,
+    exclude_underscore=None,
+    exclude_pk=None,
+    follow=None,
+    include=None,
+    only=None,
+    method="asdict",
+    **kwargs,
+):
     """Get a dict from a model
 
     Using the `method` parameter makes it possible to have multiple methods
@@ -96,28 +103,34 @@ def asdict(model, exclude=None, exclude_underscore=None, exclude_pk=None,
         attrs = only
     else:
         exclude = exclude or []
-        exclude += getattr(model, 'dictalchemy_exclude',
-                           constants.default_exclude) or []
+        exclude += (
+            getattr(model, "dictalchemy_exclude", constants.default_exclude) or []
+        )
         if exclude_underscore is None:
-            exclude_underscore = getattr(model,
-                                         'dictalchemy_exclude_underscore',
-                                         constants.default_exclude_underscore)
+            exclude_underscore = getattr(
+                model,
+                "dictalchemy_exclude_underscore",
+                constants.default_exclude_underscore,
+            )
         if exclude_underscore:
             # Exclude all properties starting with underscore
-            exclude += [k.key for k in info.mapper.attrs if k.key[0] == '_']
+            exclude += [k.key for k in info.mapper.attrs if k.key[0] == "_"]
         if exclude_pk is True:
             exclude += [c.key for c in info.mapper.primary_key]
 
-        include = (include or []) + (getattr(model,
-                                             'dictalchemy_asdict_include',
-                                             getattr(model,
-                                                     'dictalchemy_include',
-                                                     None)) or [])
+        include = (include or []) + (
+            getattr(
+                model,
+                "dictalchemy_asdict_include",
+                getattr(model, "dictalchemy_include", None),
+            )
+            or []
+        )
         attrs = [k for k in columns + synonyms + include if k not in exclude]
 
     data = dict([(k, getattr(model, k)) for k in attrs])
 
-    for (rel_key, orig_args) in follow.iteritems():
+    for (rel_key, orig_args) in follow.items():
 
         try:
             rel = getattr(model, rel_key)
@@ -125,8 +138,8 @@ def asdict(model, exclude=None, exclude_underscore=None, exclude_pk=None,
             raise errors.MissingRelationError(rel_key)
 
         args = copy.deepcopy(orig_args)
-        method = args.pop('method', method)
-        args['method'] = method
+        method = args.pop("method", method)
+        args["method"] = method
         args.update(copy.copy(kwargs))
 
         if hasattr(rel, method):
@@ -147,7 +160,7 @@ def asdict(model, exclude=None, exclude_underscore=None, exclude_pk=None,
         elif isinstance(rel, dict):
             rel_data = {}
 
-            for (child_key, child) in rel.iteritems():
+            for (child_key, child) in rel.items():
                 if hasattr(child, method):
                     rel_data[child_key] = getattr(child, method)(**args)
                 else:
@@ -170,7 +183,7 @@ def asdict(model, exclude=None, exclude_underscore=None, exclude_pk=None,
         else:
             raise errors.UnsupportedRelationError(rel_key)
 
-        ins_key = args.pop('parent', None)
+        ins_key = args.pop("parent", None)
 
         if ins_key is None:
             data[rel_key] = rel_data
@@ -183,8 +196,16 @@ def asdict(model, exclude=None, exclude_underscore=None, exclude_pk=None,
     return data
 
 
-def fromdict(model, data, exclude=None, exclude_underscore=None,
-             allow_pk=None, follow=None, include=None, only=None):
+def fromdict(
+    model,
+    data,
+    exclude=None,
+    exclude_underscore=None,
+    allow_pk=None,
+    follow=None,
+    include=None,
+    only=None,
+):
     """Update a model from a dict
 
     Works almost identically as :meth:`dictalchemy.utils.asdict`. However, it
@@ -229,41 +250,49 @@ def fromdict(model, data, exclude=None, exclude_underscore=None,
     primary_keys = [c.key for c in info.mapper.primary_key]
 
     if allow_pk is None:
-        allow_pk = getattr(model, 'dictalchemy_fromdict_allow_pk',
-                           constants.default_fromdict_allow_pk)
+        allow_pk = getattr(
+            model, "dictalchemy_fromdict_allow_pk", constants.default_fromdict_allow_pk
+        )
 
     if only:
         valid_keys = only
     else:
         exclude = exclude or []
-        exclude += getattr(model, 'dictalchemy_exclude',
-                           constants.default_exclude) or []
+        exclude += (
+            getattr(model, "dictalchemy_exclude", constants.default_exclude) or []
+        )
         if exclude_underscore is None:
-            exclude_underscore = getattr(model,
-                                         'dictalchemy_exclude_underscore',
-                                         constants.default_exclude_underscore)
+            exclude_underscore = getattr(
+                model,
+                "dictalchemy_exclude_underscore",
+                constants.default_exclude_underscore,
+            )
 
         if exclude_underscore:
             # Exclude all properties starting with underscore
-            exclude += [k.key for k in info.mapper.attrs if k.key[0] == '_']
+            exclude += [k.key for k in info.mapper.attrs if k.key[0] == "_"]
 
-        include = (include or []) + (getattr(model,
-                                             'dictalchemy_fromdict_include',
-                                             getattr(model,
-                                                     'dictalchemy_include',
-                                                     None)) or [])
-        valid_keys = [k for k in columns + synonyms
-                      if k not in exclude] + include
+        include = (include or []) + (
+            getattr(
+                model,
+                "dictalchemy_fromdict_include",
+                getattr(model, "dictalchemy_include", None),
+            )
+            or []
+        )
+        valid_keys = [k for k in columns + synonyms if k not in exclude] + include
 
     # Keys that will be updated
     update_keys = set(valid_keys) & set(data.keys())
 
     # Check for primary keys
-    data_primary_key= update_keys & set(primary_keys)
+    data_primary_key = update_keys & set(primary_keys)
     if len(data_primary_key) and not allow_pk:
-        msg = ("Primary keys({0}) cannot be updated by fromdict."
-               "Set 'dictalchemy_fromdict_allow_pk' to True in your Model"
-               " or pass 'allow_pk=True'.").format(','.join(data_primary_key))
+        msg = (
+            "Primary keys({0}) cannot be updated by fromdict."
+            "Set 'dictalchemy_fromdict_allow_pk' to True in your Model"
+            " or pass 'allow_pk=True'."
+        ).format(",".join(data_primary_key))
         raise errors.DictalchemyError(msg)
 
     # Update columns and synonyms
@@ -271,13 +300,13 @@ def fromdict(model, data, exclude=None, exclude_underscore=None,
         setattr(model, k, data[k])
 
     # Update simple relations
-    for (k, args) in follow.iteritems():
+    for (k, args) in follow.items():
         if k not in data:
             continue
         if k not in relations:
             raise errors.MissingRelationError(k)
         rel = getattr(model, k)
-        if hasattr(rel, 'fromdict'):
+        if hasattr(rel, "fromdict"):
             rel.fromdict(data[k], **args)
 
     return model
@@ -288,18 +317,19 @@ def iter(model):
 
     Yields everything returned by `asdict`.
     """
-    for i in model.asdict().iteritems():
+    for i in model.asdict().items():
         yield i
 
 
 def make_class_dictable(
-        cls,
-        exclude=constants.default_exclude,
-        exclude_underscore=constants.default_exclude_underscore,
-        fromdict_allow_pk=constants.default_fromdict_allow_pk,
-        include=None,
-        asdict_include=None,
-        fromdict_include=None):
+    cls,
+    exclude=constants.default_exclude,
+    exclude_underscore=constants.default_exclude_underscore,
+    fromdict_allow_pk=constants.default_fromdict_allow_pk,
+    include=None,
+    asdict_include=None,
+    fromdict_include=None,
+):
     """Make a class dictable
 
     Useful for when the Base class is already defined, for example when using
@@ -321,13 +351,13 @@ def make_class_dictable(
     :returns: The class
     """
 
-    setattr(cls, 'dictalchemy_exclude', exclude)
-    setattr(cls, 'dictalchemy_exclude_underscore', exclude_underscore)
-    setattr(cls, 'dictalchemy_fromdict_allow_pk', fromdict_allow_pk)
-    setattr(cls, 'asdict', asdict)
-    setattr(cls, 'fromdict', fromdict)
-    setattr(cls, '__iter__', iter)
-    setattr(cls, 'dictalchemy_include', include)
-    setattr(cls, 'dictalchemy_asdict_include', asdict_include)
-    setattr(cls, 'dictalchemy_fromdict_include', fromdict_include)
+    setattr(cls, "dictalchemy_exclude", exclude)
+    setattr(cls, "dictalchemy_exclude_underscore", exclude_underscore)
+    setattr(cls, "dictalchemy_fromdict_allow_pk", fromdict_allow_pk)
+    setattr(cls, "asdict", asdict)
+    setattr(cls, "fromdict", fromdict)
+    setattr(cls, "__iter__", iter)
+    setattr(cls, "dictalchemy_include", include)
+    setattr(cls, "dictalchemy_asdict_include", asdict_include)
+    setattr(cls, "dictalchemy_fromdict_include", fromdict_include)
     return cls
