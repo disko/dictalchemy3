@@ -52,7 +52,7 @@ class TestAsdict(TestCase):
 
     def test_dict(self):
         named = Named("a name")
-        named.asdict() == dict(named)
+        assert named.asdict() == dict(named)
 
     def test_exclude_flag(self):
         named = Named("a name")
