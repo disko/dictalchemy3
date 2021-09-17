@@ -1,3 +1,6 @@
+Version 1.0.0
+=============
+
 * Fix issues with newer SQLAlchemy.  See https://github.com/danielholmstrom/dictalchemy/pull/8 (thanks to Simon Tegelid)
 * Fix issues with setuptools>=58.
 * Remove Python 2 comaptibility.
