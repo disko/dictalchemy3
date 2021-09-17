@@ -1,6 +1,8 @@
 dictalchemy3
 ============
 
+|Test|
+
 ``dictalchemy3`` adds asdict() and fromdict() methods to SQLAlchemy declarative models.
 
 ``dictalchemy`` was written by Daniel Holmstrom with contributions from Rob Hardwick and Mike Klimin.
@@ -21,3 +23,6 @@ Licence
 -------
 
 Dictalchemy is MIT licenced.
+
+.. |Test| image:: https://github.com/disko/dictalchemy3/actions/workflows/test.yml/badge.svg
+   :target: https://github.com/disko/dictalchemy3/actions/workflows/test.yml
