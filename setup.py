@@ -11,8 +11,9 @@ Read more in the source or on github
 """
 
 import os
-import sys
-from setuptools import find_packages, setup
+
+from setuptools import find_packages
+from setuptools import setup
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, "README.rst")).read()
@@ -27,27 +28,29 @@ test_requires = install_requires
 
 setup(
     name="dictalchemy3",
-    version="1.0.0",
-    description="Contains asdict and fromdict methods for SQL-Alchemy "
-    "declarative models",
+    version="^1.0.0",
+    description="Contains asdict and fromdict methods for SQL-Alchemy declarative models",
     long_description=README,
-    url="http://github.com/danielholmstrom/dictalchemy/",
+    url="http://github.com/disko/dictalchemy3/",
     license="MIT",
     author="Daniel Holmstrom",
     author_email="holmstrom.daniel@gmail.com",
     platforms="any",
     classifiers=[
-        "Development Status :: 4 - Beta",
-        "License :: OSI Approved :: MIT License",
+        "Development Status :: 5 - Production/Stable",
         "Environment :: Web Environment",
         "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python",
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
         "Topic :: Software Development :: " "Libraries :: Python Modules",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3 :: Only",
     ],
     packages=find_packages(),
     include_package_data=True,
