@@ -28,7 +28,7 @@ test_requires = install_requires
 
 setup(
     name="dictalchemy3",
-    version="^1.0.0",
+    version="1.0.0",
     description="Contains asdict and fromdict methods for SQL-Alchemy declarative models",
     long_description=README,
     url="http://github.com/disko/dictalchemy3/",
